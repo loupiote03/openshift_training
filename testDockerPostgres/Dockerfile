@@ -1,5 +1,5 @@
 # Use a container with python pre-installed
-FROM postgres
+FROM registry.redhat.io/rhscl/postgresql-95-rhel7
 
 ENV POSTGRES_PASSWORD "1234"
 
