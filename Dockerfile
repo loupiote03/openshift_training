@@ -2,7 +2,7 @@
 FROM python
 
 # Copy our source file into the container
-COPY testDocker.py /python/main.py
+COPY main.py /python/main.py
 COPY requirements.txt /python/req/requirements.txt
 
 # Install Python libs
