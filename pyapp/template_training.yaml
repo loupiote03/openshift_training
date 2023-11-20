@@ -1,0 +1,227 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: openshifttraining
+objects:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+        
+      labels:
+        app: openshifttraining
+        app.kubernetes.io/component: openshifttraining
+        app.kubernetes.io/instance: openshifttraining
+      name: openshifttraining
+    spec:
+      clusterIP: 172.30.109.160
+      clusterIPs:
+      - 172.30.109.160
+      internalTrafficPolicy: Cluster
+      ipFamilies:
+      - IPv4
+      ipFamilyPolicy: SingleStack
+      ports:
+      - name: 8080-tcp
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+      selector:
+        deployment: openshifttraining
+      sessionAffinity: None
+      type: ClusterIP
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        deployment.kubernetes.io/revision: "2"
+        image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"openshifttraining:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"openshifttraining\")].image"}]'
+        openshift.io/generated-by: OpenShiftNewApp
+        
+      generation: 2
+      labels:
+        app: openshifttraining
+        app.kubernetes.io/component: openshifttraining
+        app.kubernetes.io/instance: openshifttraining
+      name: openshifttraining
+    spec:
+      progressDeadlineSeconds: 600
+      replicas: 1
+      revisionHistoryLimit: 10
+      selector:
+        matchLabels:
+          deployment: openshifttraining
+      strategy:
+        rollingUpdate:
+          maxSurge: 25%
+          maxUnavailable: 25%
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            openshift.io/generated-by: OpenShiftNewApp
+          labels:
+            deployment: openshifttraining
+        spec:
+          containers:
+          - image: image-registry.openshift-image-registry.svc:5000/gabriel31-dev/openshifttraining@sha256:83c0697f6012f79dfffb0fa282b14e9929bd63260de4b1833f11d675caa93c23
+            imagePullPolicy: IfNotPresent
+            name: openshifttraining
+            ports:
+            - containerPort: 8080
+              protocol: TCP
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+        
+      generation: 2
+      labels:
+        app: openshifttraining
+        app.kubernetes.io/component: openshifttraining
+        app.kubernetes.io/instance: openshifttraining
+      name: openshifttraining
+    spec:
+      failedBuildsHistoryLimit: 5
+      nodeSelector: null
+      output:
+        to:
+          kind: ImageStreamTag
+          name: openshifttraining:latest
+      postCommit: {}
+      resources: {}
+      runPolicy: Serial
+      source:
+        contextDir: pyapp
+        git:
+          ref: main
+          uri: https://github.com/loupiote03/openshift_training.git
+        type: Git
+      strategy:
+        dockerStrategy:
+          from:
+            kind: ImageStreamTag
+            name: python:3.9-ubi8
+            namespace: openshift
+        type: Docker
+      successfulBuildsHistoryLimit: 5
+      triggers:
+      - github:
+          secret: q8fMLzuogQfkfYJV3Mf6
+        type: GitHub
+      - generic:
+          secret: R-sjD8e2QFkAGtEuK19O
+        type: Generic
+      - type: ConfigChange
+      - imageChange: {}
+        type: ImageChange
+  - apiVersion: build.openshift.io/v1
+    kind: Build
+    metadata:
+      annotations:
+        openshift.io/build-config.name: openshifttraining
+        openshift.io/build.number: "1"
+        openshift.io/build.pod-name: openshifttraining-1-build
+        
+      generation: 2
+      labels:
+        app: openshifttraining
+        app.kubernetes.io/component: openshifttraining
+        app.kubernetes.io/instance: openshifttraining
+        buildconfig: openshifttraining
+        openshift.io/build-config.name: openshifttraining
+        openshift.io/build.start-policy: Serial
+      name: openshifttraining-1
+       
+      ownerReferences:
+      - apiVersion: build.openshift.io/v1
+        controller: true
+        kind: BuildConfig
+        name: openshifttraining
+    spec:
+      nodeSelector: null
+      output:
+        pushSecret:
+          name: builder-dockercfg-nhbm7
+        to:
+          kind: ImageStreamTag
+          name: openshifttraining:latest
+      postCommit: {}
+      resources: {}
+      revision:
+        git:
+          author:
+            email: bastien.larrouture@cgi.com
+            name: bastien larrouture
+          commit: 9a933638d0f7173ed66541a58d900215cd4ee6cd
+          committer:
+            email: bastien.larrouture@cgi.com
+            name: bastien larrouture
+          message: add env vars
+        type: Git
+      serviceAccount: builder
+      source:
+        contextDir: pyapp
+        git:
+          ref: main
+          uri: https://github.com/loupiote03/openshift_training.git
+        type: Git
+      strategy:
+        dockerStrategy:
+          from:
+            kind: DockerImage
+            name: image-registry.openshift-image-registry.svc:5000/openshift/python@sha256:5bcfa202c6df7ad9d7d2f91ae625a9d3cc0ca19ea27d5c62bc95b45484214042
+          pullSecret:
+            name: builder-dockercfg-nhbm7
+        type: Docker
+      triggeredBy:
+      - imageChangeBuild:
+          fromRef:
+            kind: ImageStreamTag
+            name: python:3.9-ubi8
+            namespace: openshift
+          imageID: image-registry.openshift-image-registry.svc:5000/openshift/python@sha256:5bcfa202c6df7ad9d7d2f91ae625a9d3cc0ca19ea27d5c62bc95b45484214042
+        message: Image change
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+        
+      generation: 1
+      labels:
+        app: openshifttraining
+        app.kubernetes.io/component: openshifttraining
+        app.kubernetes.io/instance: openshifttraining
+      name: openshifttraining
+    spec:
+      lookupPolicy:
+        local: false
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      annotations:
+        openshift.io/host.generated: "true"
+      labels:
+        app: openshifttraining
+        app.kubernetes.io/component: openshifttraining
+        app.kubernetes.io/instance: openshifttraining
+      name: openshifttraining
+    spec:
+      port:
+        targetPort: 8080-tcp
+      to:
+        kind: Service
+        name: openshifttraining
+        weight: 100
+      wildcardPolicy: None
